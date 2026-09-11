@@ -41,7 +41,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Check HTML and CSS syntax
-      uses: oxsecurity/megalinter/flavors/web@v7
+      uses: oxsecurity/megalinter@v7
       env:
         VALIDATE_ALL_CODEBASE: true
         # Only check HTML and CSS to keep it fast
