@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import Navbar from './components/navbar'
-import SearchBar from './components/SearchBar'
+import Navbar from './components/Navbar'
+import SearchBar from './components/searchbar'
 import Results from './components/Results'
+import { askQuestion } from './services/api'
 import './App.css'
 
 function App() {
@@ -10,27 +11,26 @@ function App() {
 
   const handleAskQuestion = async (question) => {
     setLoading(true)
-    
-    // Add user question to the list
-    setQuestions([...questions, { type: 'user', text: question }])
-    
-    // TODO: Call API to get answer from backend
-    // For now, we'll add a placeholder response
-    setTimeout(() => {
-      setQuestions(prev => [...prev, { type: 'assistant', text: 'Processing your question...' }])
+    setQuestions((previous) => [...previous, { type: 'user', text: question }])
+    try {
+      const response = await askQuestion(question)
+      setQuestions((previous) => [...previous, { type: 'assistant', text: response.answer, sources: response.sources }])
+    } catch (error) {
+      setQuestions((previous) => [...previous, { type: 'assistant error', text: error.message }])
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   return (
     <div className="app-container">
       <Navbar />
-      <div className="main-content">
+      <main className="main-content">
         <h2>BIS Standards Assistant</h2>
-        <p>Ask questions about Indian Standards and BIS services</p>
+        <p>Ask questions about the BIS documents included in this demo.</p>
         <SearchBar onAsk={handleAskQuestion} disabled={loading} />
         <Results questions={questions} />
-      </div>
+      </main>
     </div>
   )
 }
