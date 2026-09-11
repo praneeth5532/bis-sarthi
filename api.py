@@ -1,4 +1,6 @@
 import os
+import logging
+from contextlib import asynccontextmanager
 from functools import lru_cache
 from pathlib import Path
 
@@ -14,9 +16,29 @@ BASE_DIR = Path(__file__).resolve().parent
 CHROMA_FOLDER = BASE_DIR / "chroma_db"
 DIST_FOLDER = BASE_DIR / "dist"
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 
-app = FastAPI(title="BIS Sarthi API")
+logger = logging.getLogger("uvicorn.error")
+
+
+@lru_cache
+def get_gemini_client():
+    """Keep the synchronous SDK client alive across API requests."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY is not configured on the backend.")
+    return genai.Client(api_key=api_key)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    yield
+    if get_gemini_client.cache_info().currsize:
+        get_gemini_client().close()
+        get_gemini_client.cache_clear()
+
+
+app = FastAPI(title="BIS Sarthi API", lifespan=lifespan)
 allowed_origins = [origin.strip() for origin in os.getenv(
     "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
 ).split(",") if origin.strip()]
@@ -67,8 +89,7 @@ def retrieve(question: str):
 
 
 def generate_answer(question: str, context: str) -> str:
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
+    if not os.getenv("GEMINI_API_KEY"):
         raise HTTPException(status_code=503, detail="GEMINI_API_KEY is not configured on the backend.")
 
     prompt = f"""You are BIS Sarthi, an assistant for Bureau of Indian Standards documents.
@@ -82,9 +103,14 @@ BIS DOCUMENT CONTEXT:
 {context}
 """
     try:
-        response = genai.Client(api_key=api_key).models.generate_content(model=GEMINI_MODEL, contents=prompt)
-        return response.text or "I could not find this information in the available BIS documents."
+        logger.info("Calling Gemini model %s through interactions.create", GEMINI_MODEL)
+        interaction = get_gemini_client().interactions.create(
+            model=GEMINI_MODEL, input=prompt
+        )
+        return interaction.output_text or "I could not find this information in the available BIS documents."
     except Exception as error:
+        # Keep the browser response safe while retaining the diagnostic in Uvicorn logs.
+        logger.exception("Gemini request failed (%s)", type(error).__name__)
         raise HTTPException(status_code=502, detail="The Gemini service did not return an answer. Check GEMINI_API_KEY and GEMINI_MODEL.") from error
 
 
