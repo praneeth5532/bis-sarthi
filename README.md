@@ -1,175 +1,99 @@
-# BIS Sarthi 🇮🇳
+# BIS Sarthi
 
-### AI Assistant for Verified BIS Standards and Certification Information
+BIS Sarthi is a small RAG demo that answers questions using the BIS PDFs stored in `documents/`. It returns the document name and page for every answer.
 
-**BIS Sarthi** is a Retrieval-Augmented Generation (RAG) based AI assistant that helps users access reliable information about **Indian Standards and BIS services**.
-
-
-
----
-
-## 🎯 Problem
-
-BIS standards and certification information is often contained in lengthy technical documents, making it difficult for users to quickly find relevant information.
-
-BIS Sarthi provides a conversational interface where users can ask questions and receive answers based on relevant BIS documentation.
-
----
-
-##  How It Works
-
-BIS Sarthi uses **Retrieval-Augmented Generation (RAG)**:
+## What happens when a user asks a question
 
 ```text
-User
-  ↓
-Frontend / Chatbot
-  ↓
-Backend API
-  ↓
-RAG Retrieval
-  ↓
-Relevant BIS Document Chunks
-  ↓
-Gemini
-  ↓
-Grounded Response
+Browser → React website → FastAPI /api/ask
+        → all-MiniLM-L6-v2 embedding → Chroma search index
+        → top 3 BIS PDF chunks → Gemini → answer + source pages → browser
 ```
 
-The system retrieves relevant information from the document collection and provides it as context to the AI model before generating a response.
+The search index is generated from the tracked PDFs by `build_rag.py`. It is deliberately not committed; this keeps generated database files out of Git and lets deployments build a matching index.
 
----
+## Included source material
 
-##  Features
+`documents/HELMETS/` contains the helmet material used for the demo, including the Product Manual, Quality Control Order, helmet safety article, and grant-of-licence guidelines. The repository also contains flask/bottle PDFs; these are included in the index as an additional category.
 
-*  AI-powered conversational interface
-*  Retrieval from BIS documents
-*  Context-grounded responses
-*  Focus on two-wheeler helmet standards
-*  BIS certification-related information
-*  Extensible RAG architecture for additional standards
+## Fastest local startup (Windows)
 
----
+1. Install Node.js 22+ and Python 3.11 (Python 3.12 also works; 3.11 is used in Docker).
+2. Get a Gemini API key and, in Command Prompt, run `set GEMINI_API_KEY=your_key_here`.
+3. Double-click `start.bat` from Command Prompt, or run it there.
+4. Open the Vite URL it prints (normally `http://localhost:5173`).
 
-## Technology Stack
+The first run downloads the embedding model and builds the local index, so allow a few minutes and an internet connection. Never put the key in source code, a committed `.env`, or a frontend `VITE_` variable.
 
-**Frontend**
-
-* React
-* Vite
-* JavaScript
-
-**Backend**
-
-* Python
-* FastAPI
-
-**AI / RAG**
-
-* Retrieval-Augmented Generation
-* Gemini
-* Document processing
-* Vector-based retrieval
-
----
-
-## 📁 Project Structure
-
-```text
-bis-sarthi/
-│
-├── backend/          # Backend components
-├── data/helmets/     # Helmet-related data
-├── documents/        # BIS source documents
-├── public/            # Frontend assets
-├── src/               # Frontend source
-│
-├── api.py             # API entry point
-├── ingest.py          # Document ingestion
-├── build_rag.py       # RAG knowledge-base construction
-├── search_rag.py      # RAG retrieval
-├── rag_gemini.py      # RAG + Gemini integration
-│
-├── package.json       # Frontend dependencies
-├── requirements.txt   # Python dependencies
-├── vite.config.js     # Vite configuration
-└── README.md
-```
-
----
-
-## 🚀 Getting Started
-
-### Clone the repository
-
-```bash
-git clone https://github.com/praneeth5532/bis-sarthi.git
-cd bis-sarthi
-```
-
-### Install Python dependencies
-
-```bash
-python -m venv venv
-```
-
-Windows:
+## Manual local startup
 
 ```powershell
-venv\Scripts\activate
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python build_rag.py
+$env:GEMINI_API_KEY = "your_key_here"
+python -m uvicorn api:app --reload --port 8000
 ```
 
-```bash
-pip install -r requirements.txt
-```
+In a second terminal:
 
-### Install frontend dependencies
-
-```bash
-npm install
-```
-
-### Configure API Key
-
-Configure the required Gemini API key using an environment variable.
-
-**Never commit API keys or other secrets to the repository.**
-
-### Run the frontend
-
-```bash
+```powershell
+npm ci
 npm run dev
 ```
 
-Run the backend using the API entry point configured in the project.
+The Vite development server calls `http://localhost:8000/api`. For a separately hosted frontend, set `VITE_API_BASE_URL=https://your-api.example/api` during its build and set `CORS_ORIGINS` on the API to that frontend origin.
 
----
+## One-URL deployment (recommended)
 
-## 💬 Example Queries
+Deploy the repository as a Docker service on Render, Railway, or another Docker host. The included `Dockerfile` builds the frontend and serves it from FastAPI, so the judge opens one service URL.
 
-```text
-What BIS standard applies to two-wheeler helmets?
+1. Create a new Docker web service from this repository.
+2. Add a secret environment variable: `GEMINI_API_KEY`.
+3. Optional: set `GEMINI_MODEL` if your key uses a different Gemini model.
+4. Deploy. The Docker build creates the Chroma index from `documents/`; the first build needs internet access and can take several minutes.
+5. Open `https://your-service-url/api/health`. It should return an index chunk count and `gemini_configured: true`.
+6. Open the root service URL and test a prepared question.
 
-What are the requirements for helmets under the applicable standard?
+Do not set `VITE_API_BASE_URL` for this one-container deployment: the browser should use the same origin’s `/api` route.
 
-What certification information is required for helmets?
-```
+## Pre-judging checklist
 
----
+1. Confirm the deployed `/api/health` shows a non-zero `index_chunks` count and `gemini_configured: true`.
+2. Ask “What standard applies to helmets?” and confirm a page source appears.
+3. Ask one other prepared question below.
+4. Keep the deployed URL and a terminal with the API key ready.
+5. If the hosted version fails, use the local backup steps below.
 
-##  Future Scope
+## Safe demo questions
 
-* Expand to additional BIS standards and product categories
-* Improve document and section-level citations
-* Improve retrieval accuracy
-* Add more BIS services and certification workflows
+- What standard applies to two-wheeler helmets?
+- What is IS 4151?
+- What information does the helmet product manual provide?
+- Is BIS certification required for helmets under the Quality Control Order?
+- What should a consumer check when choosing a helmet?
+- What is the BIS grant-of-licence process for helmet manufacturers?
 
----
+The model is instructed to say it could not find the information when the retrieved source chunks do not support a question. Still, this is a demo: verify important compliance decisions against the original BIS document.
 
-##  Disclaimer
+## 2-minute judge script
 
-BIS Sarthi is an AI-assisted information retrieval system. Users should verify important certification, regulatory, safety, or compliance information against the latest official BIS documentation.
+**Introduction (30 seconds):** “BIS Sarthi makes long BIS reference documents easier to search. Instead of manually scanning PDFs, a user asks a plain-language question and sees a grounded answer with its source page.”
 
----
+**Live demo (1 minute):** Ask “What standard applies to two-wheeler helmets?” Point out the answer, then the source list beneath it. Ask a second prepared question. For an unsupported question, explain that the assistant should say the available BIS documents do not contain the answer rather than inventing one.
 
-##
+**Technical explanation (30 seconds):** “The React page sends the question to FastAPI. The backend converts it to an embedding, retrieves the three closest chunks from our BIS PDF index, and gives only that context to Gemini. The returned source pages are displayed in the UI.”
+
+**Impact (30 seconds):** “This lets consumers and students find relevant standards information quickly while retaining a path back to the official source.”
+
+## Backup plan
+
+Primary: use the hosted one-URL deployment. Backup: on a laptop with Node, Python, internet, and a valid key, set `GEMINI_API_KEY` and run `start.bat`. If no internet is available, the app cannot generate a real Gemini response; do not present placeholder text as AI output.
+
+## API
+
+- `GET /api/health` — setup status; does not call Gemini.
+- `POST /api/ask` with `{ "question": "..." }` — answer and `sources`.
+
+Errors are shown in the page instead of being replaced with a fake answer. A missing index or API key returns a clear `503` response.

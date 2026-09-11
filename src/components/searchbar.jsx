@@ -3,7 +3,8 @@ import { useState } from 'react'
 function SearchBar({ onAsk, disabled }) {
   const [input, setInput] = useState('')
 
-  const handleSubmit = () => {
+  const handleSubmit = (event) => {
+    event?.preventDefault()
     if (input.trim() === '') {
       alert('Please enter a question')
       return
@@ -12,27 +13,20 @@ function SearchBar({ onAsk, disabled }) {
     setInput('') // Clear input after sending
   }
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSubmit()
-    }
-  }
-
   return (
-    <div className="search-bar">
+    <form className="search-bar" onSubmit={handleSubmit}>
       <input
         type="text"
         placeholder="Ask your question about BIS standards..."
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        onKeyPress={handleKeyPress}
         disabled={disabled}
         className="search-input"
       />
-      <button onClick={handleSubmit} disabled={disabled} className="ask-button">
+      <button type="submit" disabled={disabled} className="ask-button">
         {disabled ? 'Loading...' : 'Ask'}
       </button>
-    </div>
+    </form>
   )
 }
 

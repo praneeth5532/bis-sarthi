@@ -169,3 +169,21 @@ body {
   background-color: #e9ecef;
   color: #333;
 }
+
+.message.error .message-content {
+  background-color: #fff0f0;
+  color: #9b1c1c;
+}
+
+.sources {
+  border-top: 1px solid #d2d6dc;
+  margin-top: 10px;
+  padding-top: 8px;
+  font-size: 13px;
+  text-align: left;
+}
+
+.sources ul {
+  margin: 5px 0 0;
+  padding-left: 20px;
+}

@@ -12,6 +12,18 @@ function Results({ questions }) {
               </div>
               <div className="message-content">
                 {item.text}
+                {item.sources?.length > 0 && (
+                  <div className="sources">
+                    <strong>Sources</strong>
+                    <ul>
+                      {item.sources.map((source) => (
+                        <li key={`${source.document}-${source.page}`}>
+                          {source.document} — page {source.page}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           ))}
