@@ -1,0 +1,49 @@
+name: Multi-Language Code Check
+
+on: [push, pull_request]
+
+jobs:
+  # 1. CHECK PYTHON CODE
+  check-python:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    - name: Install Python dependencies
+      run: |
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Run Python script
+      run: |
+        # This looks for any file ending in .py and tries to compile it to check for syntax errors
+        python -m compileall .
+
+  # 2. CHECK JAVA CODE
+  check-java:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Compile Java Files
+      run: |
+        # This finds all Java files and compiles them to check for errors
+        find . -name "*.java" -exec javac {} +
+
+  # 3. CHECK HTML & CSS FOR ERRORS
+  check-html-css:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check HTML and CSS syntax
+      uses: oxsecurity/megalinter/flavors/web@v7
+      env:
+        VALIDATE_ALL_CODEBASE: true
+        # Only check HTML and CSS to keep it fast
+        VALIDATE_HTML: true
+        VALIDATE_CSS: true
