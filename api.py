@@ -5,12 +5,15 @@ from sentence_transformers import SentenceTransformer
 import chromadb
 from google import genai
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CHROMA_FOLDER = os.path.join(BASE_DIR, "chroma_db")
+
 app = FastAPI()
 
 # Load RAG components
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-client = chromadb.PersistentClient(path="chroma_db")
+client = chromadb.PersistentClient(path=CHROMA_FOLDER)
 
 collection = client.get_collection(
     name="bis_documents"

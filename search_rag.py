@@ -1,8 +1,10 @@
+from pathlib import Path
+
 from sentence_transformers import SentenceTransformer
 import chromadb
 
 
-CHROMA_FOLDER = "chroma_db"
+CHROMA_FOLDER = Path(__file__).resolve().parent / "chroma_db"
 
 
 def main():
