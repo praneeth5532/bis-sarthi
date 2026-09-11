@@ -10,14 +10,11 @@ function App() {
 
   const handleAskQuestion = async (question) => {
     setLoading(true)
-    
-    // Add user question to the list
+
     setQuestions([...questions, { type: 'user', text: question }])
-    
-    // TODO: Call API to get answer from backend
-    // For now, we'll add a placeholder response
+
     setTimeout(() => {
-      setQuestions(prev => [...prev, { type: 'assistant', text: 'Processing your question...' }])
+      setQuestions((prev) => [...prev, { type: 'assistant', text: 'Processing your question...' }])
       setLoading(false)
     }, 1000)
   }
@@ -25,12 +22,27 @@ function App() {
   return (
     <div className="app-container">
       <Navbar />
-      <div className="main-content">
-        <h2>BIS Standards Assistant</h2>
-        <p>Ask questions about Indian Standards and BIS services</p>
+      <main className="main-content">
+        <section className="hero-panel">
+          <div className="hero-copy">
+            <span className="eyebrow">AI-Powered Standards Desk</span>
+            <h2>Ask. Understand. Comply.</h2>
+            <p>
+              Search standards, decode requirements, and get quick answers on BIS norms,
+              certification paths, and compliance support.
+            </p>
+          </div>
+
+          <div className="hero-pills" aria-label="Quick highlights">
+            <span>Standards</span>
+            <span>Certification</span>
+            <span>Compliance</span>
+          </div>
+        </section>
+
         <SearchBar onAsk={handleAskQuestion} disabled={loading} />
         <Results questions={questions} />
-      </div>
+      </main>
     </div>
   )
 }
