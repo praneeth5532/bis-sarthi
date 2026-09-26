@@ -1,38 +1,38 @@
 import { useState } from 'react'
+import { ArrowUpRight, CornerDownLeft, Search } from 'lucide-react'
 
 function SearchBar({ onAsk, disabled }) {
   const [input, setInput] = useState('')
 
-  const handleSubmit = () => {
-    if (input.trim() === '') {
-      alert('Please enter a question')
-      return
-    }
-    onAsk(input)
-    setInput('') // Clear input after sending
-  }
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSubmit()
-    }
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    if (!input.trim() || disabled) return
+    onAsk(input.trim())
+    setInput('')
   }
 
   return (
-    <div className="search-bar">
-      <input
-        type="text"
-        placeholder="Ask your question about BIS standards..."
+    <form className="search-bar" onSubmit={handleSubmit}>
+      <div className="search-symbol"><Search size={19} strokeWidth={1.8} /></div>
+      <textarea
+        rows="2"
+        aria-label="Ask a question about BIS standards"
+        placeholder="Ask about a product, requirement, test, or certification step..."
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        onKeyPress={handleKeyPress}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && !event.shiftKey) handleSubmit(event)
+        }}
         disabled={disabled}
         className="search-input"
       />
-      <button onClick={handleSubmit} disabled={disabled} className="ask-button">
-        {disabled ? 'Loading...' : 'Ask'}
-      </button>
-    </div>
+      <div className="search-controls">
+        <span className="key-hint"><CornerDownLeft size={12} /> Enter to ask</span>
+        <button type="submit" disabled={disabled || !input.trim()} className="ask-button" title="Ask the standards desk">
+          {disabled ? 'Working' : 'Ask'} <ArrowUpRight size={16} />
+        </button>
+      </div>
+    </form>
   )
 }
 

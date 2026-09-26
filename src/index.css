@@ -1,9 +1,18 @@
 :root {
-  font-family: Inter, 'Segoe UI', sans-serif;
+  --canvas: #f1f3ed;
+  --paper: #fafbf7;
+  --ink: #1b342d;
+  --forest: #245e46;
+  --coral: #b84f39;
+  --citron: #d6c84c;
+  --muted: #67766d;
+  --line: #d9dfd6;
+  --display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  font-family: 'Aptos', 'Segoe UI Variable', 'Trebuchet MS', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #e2e8f0;
-  background: #07111d;
+  color: var(--ink);
+  background: var(--canvas);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -22,11 +31,12 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #07111d;
+  background: var(--canvas);
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -51,6 +61,11 @@ p {
 }
 
 ::selection {
-  background: rgba(56, 189, 248, 0.28);
-  color: #f8fbff;
+  background: rgba(184, 79, 57, 0.2);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 3px;
 }
