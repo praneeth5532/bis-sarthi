@@ -1,7 +1,13 @@
 from pathlib import Path
+import sys
+
 from pypdf import PdfReader
 
-DOCUMENTS_FOLDER = Path("documents")
+BASE_DIR = Path(__file__).resolve().parent
+DOCUMENTS_FOLDER = BASE_DIR / "documents"
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
 def read_pdf(pdf_path):
@@ -20,7 +26,7 @@ def read_pdf(pdf_path):
 
 
 def main():
-    pdf_files = list(DOCUMENTS_FOLDER.glob("*.pdf"))
+    pdf_files = sorted(DOCUMENTS_FOLDER.rglob("*.pdf"))
 
     if not pdf_files:
         print("No PDF files found!")

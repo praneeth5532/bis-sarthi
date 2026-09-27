@@ -3,9 +3,10 @@ from pypdf import PdfReader
 from sentence_transformers import SentenceTransformer
 import chromadb
 
+BASE_DIR = Path(__file__).resolve().parent
 
-DOCUMENTS_FOLDER = Path("documents")
-CHROMA_FOLDER = "chroma_db"
+DOCUMENTS_FOLDER = BASE_DIR / "documents"
+CHROMA_FOLDER = BASE_DIR / "chroma_db"
 
 
 def split_text(text, chunk_size=500, overlap=100):
@@ -37,7 +38,7 @@ def main():
         name="bis_documents"
     )
 
-    pdf_files = list(DOCUMENTS_FOLDER.glob("*.pdf"))
+    pdf_files = sorted(DOCUMENTS_FOLDER.rglob("*.pdf"))
 
     print(f"Found {len(pdf_files)} PDF files.")
 
