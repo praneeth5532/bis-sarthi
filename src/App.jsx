@@ -19,6 +19,7 @@ import SearchBar from './components/SearchBar'
 import Results from './components/Results'
 import { askQuestion } from './services/api'
 import './App.css'
+import './theme.css'
 
 const knowledgeAreas = [
   {
